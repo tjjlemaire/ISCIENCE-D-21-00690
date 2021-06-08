@@ -29,10 +29,10 @@ First, you must create a directory on your machine to hold the generated data. O
 
 ## Generating the data
 
-To run the necessary underlying simulations and render a specific figure (or sub-figure), just call the associated python script, e.g. for figure 4:
+To run the necessary underlying simulations and render a specific figure (or sub-figure), just call the associated python script, e.g. for figure xxx:
 
 ```
-python fig4.py
+python figxxx.py
 ```
 
 Upon completion, the figure panels should appear as matplotlib figures. Additionally, you can ue the `-s` option to save them as PDF files in the *figs* sub-folder.
@@ -41,11 +41,12 @@ Be aware that the raw simulations as well as intermediate computation results ar
 
 The generated dataset should be split between 5 sub-folders in the indicated output directory:
 
-
 - `benchmarks`: contains primary results and divergence maps files of two-compartment benchmark simulations 
+- `fields`: contains results from acoustic fields computations
+- `modulation`: contains primary results and intermediate firing rate maps from fiber neuromodulation simulations
+- `responses`: contains simulation results from fiber "typical" simulations
+- `SDcurves`: contains intermediate SD curves data from fiber threshold simulations.
 - `figs`: output folder containing PDFs of the generated figures
-
-TO COMPLETE
 
 # Authors
 
