@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2021-05-14 19:42:00
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-08 15:14:50
+# @Last Modified time: 2021-06-08 15:29:13
 
 import os
 import logging
@@ -17,11 +17,11 @@ from PySONIC.plt import FiberDivergenceMap
 from ExSONIC.core import SennFiber, UnmyelinatedFiber
 from PySONIC.postpro import detectSpikes
 
-from utils import getBenchmarksRoot, getCommandLineArguments, saveFigs
+from utils import getSubRoot, getCommandLineArguments, saveFigs
 
 logger.setLevel(logging.INFO)
 
-benchmarksroot = getBenchmarksRoot()
+benchmarksroot = getSubRoot('benchmarks')
 
 # Coupled sonophores model parameters
 nnodes = 2

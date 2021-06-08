@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2021-05-14 19:42:00
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-08 15:23:21
+# @Last Modified time: 2021-06-08 15:28:56
 
 import os
 import logging
@@ -17,11 +17,11 @@ from PySONIC.utils import logger
 from PySONIC.plt import PassiveDivergenceMap
 from ExSONIC.core import SennFiber, UnmyelinatedFiber
 
-from utils import getBenchmarksRoot, getCommandLineArguments, saveFigs
+from utils import getSubRoot, getCommandLineArguments, saveFigs
 
 logger.setLevel(logging.INFO)
 
-benchmarksroot = getBenchmarksRoot()
+benchmarksroot = getSubRoot('benchmarks')
 
 
 def getAmpPairs(A1, A2, alpha):

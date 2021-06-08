@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2021-06-08 14:56:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-08 15:17:28
+# @Last Modified time: 2021-06-08 15:28:32
 
 import os
 from argparse import ArgumentParser
@@ -11,11 +11,11 @@ from argparse import ArgumentParser
 from config import dataroot
 
 
-def getBenchmarksRoot():
-    benchmarkroot = os.path.join(dataroot, 'benchmarks')
-    if not os.path.exists(benchmarkroot):
-        os.mkdir(benchmarkroot)
-    return benchmarkroot
+def getSubRoot(subdir):
+    subroot = os.path.join(dataroot, subdir)
+    if not os.path.exists(subroot):
+        os.mkdir(subroot)
+    return subroot
 
 
 def getCommandLineArguments():
@@ -32,4 +32,4 @@ def saveFigs(figs):
     if not os.path.exists(figroot):
         os.mkdir(figroot)
     for k, fig in figs.items():
-        fig.savefig(os.path.join(figroot, f'{k}.pdf'))
+        fig.savefig(os.path.join(figroot, f'{k}.pdf'), transparent=True)
