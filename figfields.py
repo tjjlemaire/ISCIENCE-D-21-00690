@@ -3,12 +3,11 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2020-08-22 14:14:17
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-08 15:30:33
+# @Last Modified time: 2021-06-08 15:34:42
 
 import os
 import logging
 import numpy as np
-from argparse import ArgumentParser
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 from matplotlib.ticker import StrMethodFormatter
@@ -21,10 +20,9 @@ from ExSONIC.plt import setAxis
 
 from utils import getSubRoot, getCommandLineArguments, saveFigs
 
+logger.setLevel(logging.INFO)
+
 fieldsroot = getSubRoot('fields')
-
-
-logger.setLevel(logging.DEBUG)
 
 xc = (0., 0., 0.)  # m
 radii = [1e-3, 1e-2]  # m
