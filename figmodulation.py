@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2020-03-31 13:56:36
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-08 16:19:51
+# @Last Modified time: 2021-06-08 16:30:47
 
 import os
 import logging
@@ -258,7 +258,7 @@ if __name__ == '__main__':
                 fiber, sources[k], data, 'Qm', fontsize=fontsize,
                 cmap=cmaps[k], zbounds=Qbounds[k], maponly=maponly, rasterized=True)
             fig.suptitle(key, fontsize=fontsize)
-            fname = f'fig6A_Qmap_{k}_{key}'.replace(' ', '').replace(',', '_').replace('=', '')
+            fname = f'Qmap_{k}_{key}'.replace(' ', '').replace(',', '_').replace('=', '')
             figs[fname] = fig
             subset_FRs[k].append(fiber.getEndFiringRate(data))
 
@@ -286,7 +286,7 @@ if __name__ == '__main__':
                 fiber, sources[k], DCs, amps, npulses, PRF, root=modroot)
             frmap.run()
             fig = frmap.render(yscale='log', cmap=cmaps[k], zbounds=FRbounds[k], interactive=True)
-            code = f'fig6B_normFRmap_{k}_PRF_{si_format(PRF, 1)}Hz'
+            code = f'normFRmap_{k}_PRF_{si_format(PRF, 1)}Hz'
             figs[code] = fig
 
     if args.save:
