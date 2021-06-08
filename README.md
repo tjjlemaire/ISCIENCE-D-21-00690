@@ -41,9 +41,11 @@ Be aware that the raw simulations as well as intermediate computation results ar
 
 The generated dataset should be split between 5 sub-folders in the indicated output directory:
 
-TO COMPLETE
 
+- `benchmarks`: contains primary results and divergence maps files of two-compartment benchmark simulations 
 - `figs`: output folder containing PDFs of the generated figures
+
+TO COMPLETE
 
 # Authors
 
