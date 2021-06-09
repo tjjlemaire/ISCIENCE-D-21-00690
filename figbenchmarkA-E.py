@@ -3,13 +3,14 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2021-05-14 19:42:00
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-08 15:28:56
+# @Last Modified time: 2021-06-09 17:13:26
 
 import os
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
+from scipy.interpolate import RectBivariateSpline
 
 from PySONIC.core import AcousticDrive, AcousticDriveArray
 from PySONIC.multicomp import PassiveBenchmark
@@ -33,25 +34,39 @@ def getAmpPairs(A1, A2, alpha):
     }
 
 
-def findDivmapContours():
+def findDivmapContours(model_args, drives, covs, tau_ranges, levels, axes, mpi=False):
     # Create passive benchmark object
     subdir = f'passive_{"_".join(drives.filecodes.values())}'
     outdir = os.path.join(benchmarksroot, subdir)
-    benchmark = PassiveBenchmark(a, nnodes, Cm0, ELeak, outdir=outdir)
+    benchmark = PassiveBenchmark(*model_args, outdir=outdir)
     # Create divmap objects over time constants dense 2D space
     divmaps = {
         evmode: PassiveDivergenceMap(
-            benchmark, *tau_ranges['dense'], [drives, covs], evmode, [])
+            benchmark, *tau_ranges, [drives, covs], evmode, [])
         for evmode in levels.keys()}
     # Run missing simulations/evaluations if any of the divmaps are not complete
     if not all(x.isFinished() for x in divmaps.values()):
-        benchmark.runSimsOverTauSpace(drives, covs, *tau_ranges['dense'], mpi=args.mpi)
+        benchmark.runSimsOverTauSpace(drives, covs, *tau_ranges, mpi=mpi)
     # Extract and plot threshold curves for relevant divergence levels
     for i, (evmode, divmap) in enumerate(divmaps.items()):
         if not divmap.isFinished():
             divmap.run()
-        axes['threshold'][i].contour(
-            *tau_ranges['dense'], divmap.getOutput(), levels[evmode], colors=[cdict[k]])
+        data = divmap.getOutput().T * divmap.zfactor
+        x, y = np.log10(divmap.xvec), np.log10(divmap.yvec)
+        # f = RectBivariateSpline(x, y, data)
+        # norders = int(x[-1] - x[1]) + 1
+        # nperorder = (x.size - 1) // norders
+        # nextraorders = 1
+        # x_extra = x[-nperorder * nextraorders:] + nextraorders
+        # x = np.hstack((x, x_extra))
+        # data = np.vstack((data, f(x_extra, y)))
+        x, y = np.power(10., x), np.power(10., y)
+        axes[i].contour(x, y, data.T, levels[evmode], colors=[cdict[k]])
+        axes[i].contourf(x, y, data.T, [*levels[evmode], np.inf], colors=[cdict[k]], alpha=0.2)
+        # if evmode == 'transient':
+        #     divmap.render(
+        #         fs=fs, title=subdir, zscale=zscale[evmode], zbounds=None,
+        #         T=1 / Fdrive, levels=levels[evmode], interactive=True)
 
 
 # Coupled sonophores model parameters
@@ -74,6 +89,7 @@ Fdrive = 500e3  # Hz
 other_freqs = {'LF': 20e3, 'HF': 4e6}
 ref_amps = [100e3, 50e3]  # Pa
 other_amps_pairs = getAmpPairs(*ref_amps, alpha=2)
+delta_phis = np.arange(1, 5) * np.pi / 4  # rad
 
 # Passive point-neuron model parameters
 Cm0 = 1e-2   # F/m2
@@ -88,21 +104,36 @@ tau_ranges = {k: np.logspace(*np.log10(tau_bounds), v) for k, v in ntaus.items()
 tau_ranges = {k: [v, v] for k, v in tau_ranges.items()}
 
 # Plot parameters
-levels = {'ss': [1e0], 'normdiff': [1e0]}
-zscale = {'ss': 'log', 'normdiff': 'log'}
+levels = {
+    'ss': [1.],        # nC/cm2
+    'transient': [5.]  # %
+}
+zscale = {'ss': 'log', 'transient': 'log'}
 nrows = len(levels)
 fs = 12
 cbar_shrink_xratio = 10
-colors = plt.get_cmap('Paired').colors
-color_pairs = list(zip(colors[::2], colors[1::2]))
+
+# colors = plt.get_cmap('Paired').colors
+# color_pairs = list(zip(colors[::2], colors[1::2]))
+# cdict = {
+#     'ref': 'k',
+#     'field+': color_pairs[1][1],
+#     'field-': color_pairs[1][0],
+#     'gradient+': color_pairs[2][1],
+#     'gradient-': color_pairs[2][0],
+#     'LF': 'dimgrey',
+#     'HF': 'darkgrey'
+# }
+
+colors = plt.get_cmap('tab10').colors
 cdict = {
     'ref': 'k',
-    'field+': color_pairs[1][0],
-    'field-': color_pairs[1][1],
-    'gradient+': color_pairs[2][0],
-    'gradient-': color_pairs[2][1],
-    'LF': 'dimgrey',
-    'HF': 'darkgrey'
+    'gradient+': colors[0],
+    'gradient-': colors[1],
+    'field+': colors[2],
+    'field-': colors[3],
+    'LF': colors[4],
+    'HF': colors[5]
 }
 
 labels = ['ref'] + list(other_amps_pairs.keys()) + list(other_freqs.keys())
@@ -158,29 +189,31 @@ if __name__ == '__main__':
         divmap.render(
             ax=axes['map'][i], cbarax=axes['cbar'][i], cbarlabel='horizontal', fs=fs,
             title=f'divmap - {evmode}', zscale=zscale[evmode], zbounds=None,
-            T=1 / Fdrive, levels=levels[evmode])
+            T=1 / Fdrive, levels=levels[evmode], interactive=True)
         axes['threshold'][i].contour(
-            *tau_ranges['dense'], divmap.getOutput(), levels[evmode], colors=[cdict['ref']])
+            *tau_ranges['dense'], divmap.getOutput() * divmap.zfactor,
+            levels[evmode], colors=[cdict['ref']])
 
     # Other amplitude pairs
     for k, amps in other_amps_pairs.items():
         drives = AcousticDriveArray([AcousticDrive(Fdrive, A) for A in amps])
-        findDivmapContours()
+        findDivmapContours([a, nnodes, Cm0, ELeak], drives, covs, tau_ranges['dense'],
+                           levels, axes['threshold'], mpi=args.mpi)
 
     # Other carrier frequencies
     for k, v in other_freqs.items():
         drives = AcousticDriveArray([AcousticDrive(v, A) for A in ref_amps])
-        findDivmapContours()
+        findDivmapContours([a, nnodes, Cm0, ELeak], drives, covs, tau_ranges['dense'],
+                           levels, axes['threshold'], mpi=args.mpi)
 
     # # Other phases
     # amps = other_amps_pairs['gradient-']
-    # delta_phis = np.arange(1, 5) * np.pi / 4
-    # phis = [(np.pi, np.pi - dp) for dp in delta_phis]
     # for delta_phi in delta_phis:
     #     phis = (np.pi - delta_phi, np.pi)
     #     drives = AcousticDriveArray([
     #         AcousticDrive(Fdrive, A, phi) for A, phi in zip(amps, phis)])
-    #     findDivmapContours()
+    #     findDivmapContours([a, nnodes, Cm0, ELeak], drives, covs, tau_ranges['dense'],
+    #                        levels, axes['threshold'], mpi=args.mpi)
 
     # Add periodicity lines
     for ax in axes['threshold']:

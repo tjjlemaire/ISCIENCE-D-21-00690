@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2021-05-14 19:42:00
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-08 15:29:13
+# @Last Modified time: 2021-06-09 17:32:49
 
 import os
 import logging
@@ -33,7 +33,7 @@ Fdrive = 500e3  # Hz
 
 # Fibers
 fibers = {
-    # 'MY': SennFiber(10e-6, 2),
+    'MY': SennFiber(10e-6, 2),
     'UN': UnmyelinatedFiber(0.8e-6, nnodes=2)
 }
 
@@ -51,8 +51,8 @@ mpi = False
 
 # Plot parameters
 flip = {'MY': False, 'UN': True}
-eval_args = {}
-levels = [1e0]
+rel_gamma = 0.1
+levels = [2.0]
 zscale = 'log'
 
 if __name__ == '__main__':
@@ -72,11 +72,10 @@ if __name__ == '__main__':
         # Simulate single node at 1.1 times threshold and determine gamma evaluation
         # parameters from extracted spike properties
         data, _ = nbls.simulate(drive.updatedX(1.1 * Athr), pp, fs=covs[0])
-        data['Qnorm'] = data['Qm'] / nbls.Cm0 * 1e3
-        _, properties = detectSpikes(data, key='Qnorm')
+        _, properties = detectSpikes(data, key='Qm')
         spikewidth = properties['widths'][0]  # s
-        spikeprom = properties['prominences'][0]  # mV
-        gamma_args = [2 * spikewidth, spikeprom / 100]
+        spikeprom = properties['prominences'][0]  # C/cm2
+        gamma_args = [rel_gamma * spikewidth, rel_gamma * spikeprom]
 
         # Create fiber benchmark object
         subdir = f'{fiber.modelcode}_f_{si_format(Fdrive, space="")}Hz'
@@ -84,21 +83,20 @@ if __name__ == '__main__':
         benchmark = FiberBenchmark(a, nnodes, fiber.pneuron, fiber.ga_node_to_node, outdir=outdir)
 
         # Run simulations over the amplitude sparse 2D space and plot resulting signals
-        results = benchmark.runSimsOverAmplitudeSpace(
-            Fdrive, tstims[k], covs, Aranges['sparse'], mpi=args.mpi)
-        figs[f'{k}-signals'] = benchmark.plotSignalsOverAmplitudeSpace(
-            Aranges['sparse'], results)
-        figs[f'{k}-signals'].suptitle(k)
-        figs[f'{k}-gamma'] = benchmark.plotSignalsOverAmplitudeSpace(
-            Aranges['sparse'], results, *gamma_args)
-        figs[f'{k}-gamma'].suptitle(k)
+        # results = benchmark.runSimsOverAmplitudeSpace(
+        #     Fdrive, tstims[k], covs, Aranges['sparse'], mpi=args.mpi)
+        # for pltfunc in ['plotQm', 'plotGamma']:
+        #     key = f'{k}-{pltfunc[4:]}-signals'
+        #     figs[key] = benchmark.plotSignalsOverAmplitudeSpace(
+        #         Aranges['sparse'], results, *gamma_args, pltfunc=pltfunc)
+        #     figs[key].suptitle(key)
 
         # Run simulations and plot divergence maps over amplitude dense 2D space
         divmap = FiberDivergenceMap(
             benchmark, Aranges['dense'], [Fdrive, tstims[k], covs], 'gamma', gamma_args)
         if not divmap.isFinished():
-            benchmark.runSimsOverAmplitudeSpace(
-                Fdrive, tstims[k], covs, Aranges['dense'], mpi=args.mpi)
+            # benchmark.runSimsOverAmplitudeSpace(
+            #     Fdrive, tstims[k], covs, Aranges['dense'], mpi=args.mpi)
             divmap.run()
         figs[f'{k}-divmap'] = divmap.render(
             zscale=zscale, zbounds=None, levels=levels, flip=True,
