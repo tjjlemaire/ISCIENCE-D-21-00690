@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2020-08-22 14:14:17
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-08 15:34:42
+# @Last Modified time: 2021-06-14 17:16:09
 
 import os
 import logging
@@ -15,7 +15,7 @@ from scipy.stats import normaltest
 
 from PySONIC.utils import logger, si_format, rangecode, isIterable
 from PySONIC.plt import setNormalizer, XYMap
-from ExSONIC.core import PlanarDiskTransducerSource, ExtracellularCurrent
+from ExSONIC.sources import PlanarDiskTransducerSource, ExtracellularCurrent
 from ExSONIC.plt import setAxis
 
 from utils import getSubRoot, getCommandLineArguments, saveFigs

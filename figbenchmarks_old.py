@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2020-09-24 13:42:30
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-11-02 12:19:22
+# @Last Modified time: 2021-06-14 11:55:57
 
 import os
 import logging
@@ -14,7 +14,7 @@ from PySONIC.utils import logger, expandRange, bounds, si_format
 from PySONIC.core import BilayerSonophore
 from PySONIC.neurons import passiveNeuron
 
-from ExSONIC.core import SennFiber, UnmyelinatedFiber
+from ExSONIC.models import SennFiber, UnmyelinatedFiber
 from PySONIC.multicomp import GammaMap, SonicBenchmark, ModelDivergenceMap, GammaDivergenceMap
 from ExSONIC.constants import *
 from root import datadir, figdir

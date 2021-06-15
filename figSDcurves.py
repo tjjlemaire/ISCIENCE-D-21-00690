@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2020-08-24 19:34:35
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-08 15:44:52
+# @Last Modified time: 2021-06-14 17:18:34
 
 import logging
 import numpy as np
@@ -13,8 +13,9 @@ from matplotlib.colors import LinearSegmentedColormap
 
 from PySONIC.utils import logger, si_format
 from PySONIC.core import AcousticDrive
-from ExSONIC.core import Node, SennFiber, UnmyelinatedFiber, StrengthDurationBatch
-from ExSONIC.core.sources import *
+from ExSONIC.models import Node, SennFiber, UnmyelinatedFiber
+from ExSONIC.batches import StrengthDurationBatch
+from ExSONIC.sources import GaussianSource, GaussianVoltageSource, GaussianAcousticSource
 from ExSONIC.utils import rheobase, chronaxie
 
 from utils import getSubRoot, getCommandLineArguments, saveFigs

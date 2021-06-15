@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2021-05-14 19:42:00
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-09 17:32:49
+# @Last Modified time: 2021-06-14 11:55:50
 
 import os
 import logging
@@ -14,8 +14,8 @@ from PySONIC.core import NeuronalBilayerSonophore, AcousticDrive, PulsedProtocol
 from PySONIC.multicomp import FiberBenchmark
 from PySONIC.utils import logger, si_format
 from PySONIC.plt import FiberDivergenceMap
-from ExSONIC.core import SennFiber, UnmyelinatedFiber
 from PySONIC.postpro import detectSpikes
+from ExSONIC.models import SennFiber, UnmyelinatedFiber
 
 from utils import getSubRoot, getCommandLineArguments, saveFigs
 

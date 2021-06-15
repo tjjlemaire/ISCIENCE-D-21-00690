@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2021-05-14 19:42:00
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-09 17:13:26
+# @Last Modified time: 2021-06-14 12:44:52
 
 import os
 import logging
@@ -16,7 +16,7 @@ from PySONIC.core import AcousticDrive, AcousticDriveArray
 from PySONIC.multicomp import PassiveBenchmark
 from PySONIC.utils import logger
 from PySONIC.plt import PassiveDivergenceMap
-from ExSONIC.core import SennFiber, UnmyelinatedFiber
+from ExSONIC.models import SennFiber, UnmyelinatedFiber
 
 from utils import getSubRoot, getCommandLineArguments, saveFigs
 
@@ -34,7 +34,7 @@ def getAmpPairs(A1, A2, alpha):
     }
 
 
-def findDivmapContours(model_args, drives, covs, tau_ranges, levels, axes, mpi=False):
+def findDivmapContours(model_args, drives, covs, tau_ranges, levels, axes, mpi=False, pltmaps=False):
     # Create passive benchmark object
     subdir = f'passive_{"_".join(drives.filecodes.values())}'
     outdir = os.path.join(benchmarksroot, subdir)
@@ -63,10 +63,10 @@ def findDivmapContours(model_args, drives, covs, tau_ranges, levels, axes, mpi=F
         x, y = np.power(10., x), np.power(10., y)
         axes[i].contour(x, y, data.T, levels[evmode], colors=[cdict[k]])
         axes[i].contourf(x, y, data.T, [*levels[evmode], np.inf], colors=[cdict[k]], alpha=0.2)
-        # if evmode == 'transient':
-        #     divmap.render(
-        #         fs=fs, title=subdir, zscale=zscale[evmode], zbounds=None,
-        #         T=1 / Fdrive, levels=levels[evmode], interactive=True)
+        if pltmaps:
+            divmap.render(
+                fs=fs, title=subdir, zscale=zscale[evmode], zbounds=None,
+                T=1 / Fdrive, levels=levels[evmode], interactive=True)
 
 
 # Coupled sonophores model parameters
@@ -206,14 +206,14 @@ if __name__ == '__main__':
         findDivmapContours([a, nnodes, Cm0, ELeak], drives, covs, tau_ranges['dense'],
                            levels, axes['threshold'], mpi=args.mpi)
 
-    # # Other phases
-    # amps = other_amps_pairs['gradient-']
-    # for delta_phi in delta_phis:
-    #     phis = (np.pi - delta_phi, np.pi)
-    #     drives = AcousticDriveArray([
-    #         AcousticDrive(Fdrive, A, phi) for A, phi in zip(amps, phis)])
-    #     findDivmapContours([a, nnodes, Cm0, ELeak], drives, covs, tau_ranges['dense'],
-    #                        levels, axes['threshold'], mpi=args.mpi)
+    # Other phases
+    amps = other_amps_pairs['gradient-']
+    for delta_phi in delta_phis:
+        phis = (np.pi - delta_phi, np.pi)
+        drives = AcousticDriveArray([
+            AcousticDrive(Fdrive, A, phi) for A, phi in zip(amps, phis)])
+        findDivmapContours([a, nnodes, Cm0, ELeak], drives, covs, tau_ranges['dense'],
+                           levels, axes['threshold'], mpi=args.mpi, pltmaps=True)
 
     # Add periodicity lines
     for ax in axes['threshold']:

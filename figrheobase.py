@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2020-08-27 11:33:16
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-08 15:51:20
+# @Last Modified time: 2021-06-14 11:57:48
 
 import logging
 import numpy as np
@@ -13,7 +13,8 @@ from PySONIC.utils import logger, si_format, rescale, padleft
 from PySONIC.neurons import getPointNeuron
 from PySONIC.constants import NPC_DENSE
 from PySONIC.core import BilayerSonophore, AcousticDrive, PulsedProtocol, PmCompMethod
-from ExSONIC.core import Node, StrengthDurationBatch
+from ExSONIC.models import Node
+from ExSONIC.batches import StrengthDurationBatch
 from ExSONIC.plt import setAxis
 from ExSONIC.constants import *
 

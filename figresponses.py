@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2020-09-14 11:50:12
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-08 16:05:06
+# @Last Modified time: 2021-06-14 17:17:23
 
 import logging
 import numpy as np
@@ -11,8 +11,8 @@ import matplotlib.pyplot as plt
 
 from PySONIC.utils import logger, si_format, bounds, padleft
 from PySONIC.plt import *
-from ExSONIC.core import SennFiber, UnmyelinatedFiber
-from ExSONIC.core.sources import *
+from ExSONIC.models import SennFiber, UnmyelinatedFiber
+from ExSONIC.sources import GaussianAcousticSource
 from ExSONIC.constants import *
 from ExSONIC.plt import setAxis
 from PySONIC.core import PulsedProtocol
@@ -29,7 +29,7 @@ fontsize = 10
 Fdrive = 500e3  # Hz
 Adrive = 120e3  # Pa
 w = 5e-3  # FWHM (m)
-sigma = GaussianSource.from_FWHM(w)  # m
+sigma = GaussianAcousticSource.from_FWHM(w)  # m
 source = GaussianAcousticSource(0., sigma, Fdrive, Adrive)
 
 # Fiber objects

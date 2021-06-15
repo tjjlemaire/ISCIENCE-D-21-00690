@@ -3,9 +3,8 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2020-03-31 13:56:36
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-08 16:30:47
+# @Last Modified time: 2021-06-15 14:24:27
 
-import os
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,8 +13,8 @@ from PySONIC.core import getPulseTrainProtocol, LogBatch
 from PySONIC.utils import logger, si_format
 from PySONIC.plt import setNormalizer, XYMap
 
-from ExSONIC.core import SennFiber, UnmyelinatedFiber
-from ExSONIC.core.sources import GaussianAcousticSource
+from ExSONIC.models import SennFiber, UnmyelinatedFiber
+from ExSONIC.sources import GaussianAcousticSource
 from ExSONIC.plt import spatioTemporalMap
 
 from utils import getSubRoot, getCommandLineArguments, saveFigs, loadData
@@ -43,8 +42,8 @@ class FRvsPRFBatch(LogBatch):
 
     def compute(self, PRF):
         pp = getPulseTrainProtocol(self.PD, self.npulses, PRF)
-        data, meta = fiber.simulate(self.source, pp)
-        return fiber.getEndFiringRate(data)
+        data, meta = self.fiber.simulate(self.source, pp)
+        return self.fiber.getEndFiringRate(data)
 
     @property
     def sourcecode(self):
@@ -99,14 +98,14 @@ class NormalizedFiringRateMap(XYMap):
         DC, A = x
         self.source.A = A
         pp = getPulseTrainProtocol(DC / self.PRF, self.npulses, self.PRF)
-        data, meta = fiber.simulate(self.source, pp)
-        return fiber.getEndFiringRate(data) / self.PRF
+        data, meta = self.fiber.simulate(self.source, pp)
+        return self.fiber.getEndFiringRate(data) / self.PRF
 
     def onClick(self, event):
         DC, A = self.getOnClickXY(event)
         self.source.A = A
         pp = getPulseTrainProtocol(DC / self.PRF, self.npulses, self.PRF)
-        data, meta = fiber.simulate(self.source, pp)
+        data, meta = self.fiber.simulate(self.source, pp)
         spatioTemporalMap(self.fiber, self.source, data, 'Qm', fontsize=fontsize)
         plt.show()
 
