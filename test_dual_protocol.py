@@ -3,12 +3,11 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2021-06-09 13:30:58
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-16 13:52:48
+# @Last Modified time: 2021-06-16 13:55:47
 
 import numpy as np
 import logging
 import matplotlib.pyplot as plt
-import time
 
 from PySONIC.core import NeuronalBilayerSonophore, AcousticDrive, Batch
 from PySONIC.core import getPulseTrainProtocol, PulsedProtocol, ProtocolArray

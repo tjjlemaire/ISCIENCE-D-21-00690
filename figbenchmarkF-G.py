@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2021-05-14 19:42:00
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-14 11:55:50
+# @Last Modified time: 2021-06-17 09:15:57
 
 import os
 import logging
@@ -51,9 +51,10 @@ mpi = False
 
 # Plot parameters
 flip = {'MY': False, 'UN': True}
-rel_gamma = 0.1
-levels = [2.0]
-zscale = 'log'
+rel_gamma = 0.25
+levels = [1.2]
+zscale = 'lin'
+zbounds = (0., 6.)
 
 if __name__ == '__main__':
 
@@ -95,11 +96,9 @@ if __name__ == '__main__':
         divmap = FiberDivergenceMap(
             benchmark, Aranges['dense'], [Fdrive, tstims[k], covs], 'gamma', gamma_args)
         if not divmap.isFinished():
-            # benchmark.runSimsOverAmplitudeSpace(
-            #     Fdrive, tstims[k], covs, Aranges['dense'], mpi=args.mpi)
-            divmap.run()
+            divmap.run(mpi=args.mpi)
         figs[f'{k}-divmap'] = divmap.render(
-            zscale=zscale, zbounds=None, levels=levels, flip=True,
+            zscale=zscale, zbounds=zbounds, levels=levels, flip=True,
             Ascale=Ascale)
 
     # Save figures if specified
