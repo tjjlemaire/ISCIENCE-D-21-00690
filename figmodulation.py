@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2020-03-31 13:56:36
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-15 14:24:27
+# @Last Modified time: 2021-06-18 20:37:02
 
 import logging
 import numpy as np
@@ -284,7 +284,8 @@ if __name__ == '__main__':
             frmap = NormalizedFiringRateMap(
                 fiber, sources[k], DCs, amps, npulses, PRF, root=modroot)
             frmap.run()
-            fig = frmap.render(yscale='log', cmap=cmaps[k], zbounds=FRbounds[k], interactive=True)
+            fig = frmap.render(
+                yscale='log', cmap=cmaps[k], zbounds=FRbounds[k], interactive=True)
             code = f'normFRmap_{k}_PRF_{si_format(PRF, 1)}Hz'
             figs[code] = fig
 

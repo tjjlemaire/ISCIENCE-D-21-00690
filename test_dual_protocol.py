@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2021-06-09 13:30:58
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-16 13:55:47
+# @Last Modified time: 2021-06-18 21:01:59
 
 import numpy as np
 import logging
@@ -93,7 +93,9 @@ class DualProtocolFiringRateMap(XYMap):
         fpath = runSimAndSave(
             self.fiber, self.source, x, self.PDs, self.factors, self.min_npulses, self.root)
         data, _ = loadData(fpath)
-        spatioTemporalMap(self.fiber, self.source, data, 'Qm', fontsize=fontsize)
+        ftype = 'MY' if self.fiber.is_myelinated else 'UN'
+        spatioTemporalMap(self.fiber, self.source, data, 'Qm', fontsize=fontsize,
+                          cmap=cmaps[ftype], zbounds=Qbounds[ftype])
         plt.show()
 
 
@@ -137,11 +139,15 @@ fontsize = 10
 drive = AcousticDrive(Fdrive)
 Athrs = {k: NeuronalBilayerSonophore(a, fiber.pneuron).titrate(
     drive, PulsedProtocol(PDs[k], 10e-3), fs=fs) for k, fiber in fibers.items()}
+s = 'fiber-specific thresholds:'
+s += ', '.join([f'A_{k} = {v * 1e-3:.1f} kPa'for k, v in Athrs.items()])
+s += f' (ratio = {max(Athrs.values()) / min(Athrs.values()):.2f})'
+logger.info(s)
 
 # Determine acoustic source amplitude and pulsed protocols modulation factors
 # from single-pulse thresholds
 Amin = min(Athrs.values())
-Adrive = 1.1 * Amin
+Adrive = 1.25 * Amin
 factors = {k: v / Amin for k, v in Athrs.items()}
 flist = list(factors.values())
 source = GaussianAcousticSource(0., sigma, Fdrive, Adrive)
@@ -152,39 +158,39 @@ if __name__ == '__main__':
     figs = {}
 
     # Construct, combine, and optimize pulsed protocols for particular example
-    PRFs = {'UN': 40., 'MY': 100.}  # Hz
+    PRFs = {'UN': 100., 'MY': 60.}  # Hz
     npulses = dict(zip(PRFs.keys(), getNPulses(min_npulses, PRFs.values())))
     dual_pp = ProtocolArray(
         [f * getPulseTrainProtocol(PDs[k], npulses[k], PRFs[k]) for k, f in factors.items()],
         minimize_overlap=True)
 
-    # # Run simulations and plot spatio-temporal maps for each fiber
-    # FRs = {}
-    # for k, fiber in fibers.items():
-    #     fpath = fiber.simAndSave(source, dual_pp, outputdir=dproot, overwrite=False)
-    #     data, _ = loadData(fpath)
-    #     fig = spatioTemporalMap(
-    #         fiber, source, data, 'Qm', fontsize=fontsize, rasterized=True,
-    #         zbounds=Qbounds[k], cmap=cmaps[k])
-    #     FRs[k] = fiber.getEndFiringRate(data)
-    # print(FRs)
-
-    # For each fiber
+    # Run simulations and plot spatio-temporal maps for each fiber
+    FRs = {}
     for k, fiber in fibers.items():
-        # Initialize dual protocol firing rate map
-        frmap = DualProtocolFiringRateMap(
-            fiber, source, PDlist, flist, PRF_range, min_npulses,
-            root=dproot)
-        # If map is not complete, run simulations over PRF 2D space and save files, then run map
-        if not frmap.isFinished():
-            queue = [[k, *x] for x in PRFqueue]
-            def simfunc(k, *PRFs):
-                return runSimAndSave(getFiber(k), source, PRFs, PDlist, flist, min_npulses, dproot)
-            batch = Batch(simfunc, queue)
-            batch.run(loglevel=logger.getEffectiveLevel(), mpi=args.mpi)
-            frmap.run()
-        # Render map
-        fig = frmap.render(cmap=cmaps[k], interactive=True)
-        figs[frmap.corecode] = fig
+        fpath = fiber.simAndSave(source, dual_pp, outputdir=dproot, overwrite=False)
+        data, _ = loadData(fpath)
+        fig = spatioTemporalMap(
+            fiber, source, data, 'Qm', fontsize=fontsize, rasterized=True,
+            zbounds=Qbounds[k], cmap=cmaps[k])
+        FRs[k] = fiber.getEndFiringRate(data)
+    print(FRs)
+
+    # # # For each fiber
+    # for k, fiber in fibers.items():
+    #     # Initialize dual protocol firing rate map
+    #     frmap = DualProtocolFiringRateMap(
+    #         fiber, source, PDlist, flist, PRF_range, min_npulses,
+    #         root=dproot)
+    #     # If map is not complete, run simulations over PRF 2D space and save files, then run map
+    #     if not frmap.isFinished():
+    #         queue = [[k, *x] for x in PRFqueue]
+    #         def simfunc(k, *PRFs):
+    #             return runSimAndSave(getFiber(k), source, PRFs, PDlist, flist, min_npulses, dproot)
+    #         batch = Batch(simfunc, queue)
+    #         batch.run(loglevel=logger.getEffectiveLevel(), mpi=args.mpi)
+    #         frmap.run()
+    #     # Render map
+    #     fig = frmap.render(cmap=cmaps[k], interactive=True, title=k)
+    #     figs[frmap.corecode] = fig
 
     plt.show()
