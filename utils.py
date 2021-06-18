@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2021-06-08 14:56:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-08 16:04:16
+# @Last Modified time: 2021-06-18 17:51:51
 
 import os
 import pickle
@@ -25,6 +25,8 @@ def getCommandLineArguments():
         '-s', '--save', default=False, action='store_true', help='Save figure')
     parser.add_argument(
         '--mpi', default=False, action='store_true', help='Use multiprocessing')
+    parser.add_argument(
+        '-d', '--details', default=False, action='store_true', help='Plot detailed figures')
     return parser.parse_args()
 
 
@@ -41,3 +43,15 @@ def loadData(fpath):
     with open(fpath, 'rb') as fh:
         frame = pickle.load(fh)
     return frame['data'], frame['meta']
+
+
+def getAxesFromGridSpec(fig, gs):
+    axes = {}
+    for k, v in gs.items():
+        if isinstance(v, dict):
+            axes[k] = getAxesFromGridSpec(fig, v)
+        elif isinstance(v, list):
+            axes[k] = [fig.add_subplot(x) for x in v]
+        else:
+            axes[k] = fig.add_subplot(v)
+    return axes

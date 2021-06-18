@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2021-05-14 19:42:00
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-17 09:15:57
+# @Last Modified time: 2021-06-18 18:37:15
 
 import os
 import logging
@@ -95,8 +95,7 @@ if __name__ == '__main__':
         # Run simulations and plot divergence maps over amplitude dense 2D space
         divmap = FiberDivergenceMap(
             benchmark, Aranges['dense'], [Fdrive, tstims[k], covs], 'gamma', gamma_args)
-        if not divmap.isFinished():
-            divmap.run(mpi=args.mpi)
+        divmap.run(mpi=args.mpi)
         figs[f'{k}-divmap'] = divmap.render(
             zscale=zscale, zbounds=zbounds, levels=levels, flip=True,
             Ascale=Ascale)
