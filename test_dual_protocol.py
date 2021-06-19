@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2021-06-09 13:30:58
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-19 19:37:26
+# @Last Modified time: 2021-06-19 19:39:41
 
 import numpy as np
 import logging
@@ -191,7 +191,8 @@ if __name__ == '__main__':
             batch.run(loglevel=logger.getEffectiveLevel(), mpi=args.mpi)
         # Render map
         frmap.run()
-        fig = frmap.render(cmap=cmaps[k], interactive=True, title=k)
+        fig = frmap.render(
+            cmap=cmaps[k], interactive=True, title=k, xscale='log', yscale='log', zscale='log')
         figs[frmap.corecode] = fig
 
     plt.show()
