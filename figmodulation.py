@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2020-03-31 13:56:36
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-18 20:37:02
+# @Last Modified time: 2021-06-19 19:38:19
 
 import logging
 import numpy as np
@@ -17,7 +17,7 @@ from ExSONIC.models import SennFiber, UnmyelinatedFiber
 from ExSONIC.sources import GaussianAcousticSource
 from ExSONIC.plt import spatioTemporalMap
 
-from utils import getSubRoot, getCommandLineArguments, saveFigs, loadData
+from utils import getSubRoot, getCommandLineArguments, saveFigs, loadData, getAxesFromGridSpec
 
 logger.setLevel(logging.INFO)
 
@@ -110,9 +110,12 @@ class NormalizedFiringRateMap(XYMap):
         plt.show()
 
 
-def plotFRvsPRF(PRFs, FRs, cmaps):
+def plotFRvsPRF(PRFs, FRs, cmaps, ax=None):
     ''' Plot FR vs PRF across cell types for various PDs. '''
-    fig, ax = plt.subplots(constrained_layout=True, figsize=(4, 3.5))
+    if ax is None:
+        fig, ax = plt.subplots(constrained_layout=True, figsize=(4, 3.5))
+    else:
+        fig = None
     ax.set_xscale('log')
     ax.set_yscale('log')
     ax.set_xlabel('pulse repetition frequency (Hz)')
@@ -158,15 +161,9 @@ def plotFRvsPRF(PRFs, FRs, cmaps):
 a = 32e-9  # sonophore radius (m)
 fs = 1.    # sonophore coverage fraction (-)
 fibers = {
-    'unmyelinated': UnmyelinatedFiber(0.8e-6, fiberL=5e-3, a=a, fs=fs),
     'myelinated': SennFiber(10e-6, 21, a=a, fs=fs),
+    'unmyelinated': UnmyelinatedFiber(0.8e-6, fiberL=5e-3, a=a, fs=fs),
 }
-
-# # Charactersitic chronaxies
-# chronaxies = {
-#     'myelinated': 76e-6,  # s
-#     'unmyelinated': 8e-3  # s
-# }
 
 PDs = {
     'myelinated': np.array([20e-6, 100e-6, 1e-3]),
@@ -176,6 +173,13 @@ PDs = {
 # US parameters
 Fdrive = 500e3  # Hz
 Adrive = 300e3  # Pa
+
+# Define acoustic sources
+sources = {}
+for k, fiber in fibers.items():
+    w = fiber.length / 5  # m
+    sigma = GaussianAcousticSource.from_FWHM(w)  # m
+    sources[k] = GaussianAcousticSource(0, sigma, Fdrive, Adrive)
 
 # Pulsing parameters
 npulses = 10
@@ -197,27 +201,74 @@ subset_colors = {
     'unmyelinated': 'C0',
     'myelinated': 'C1'
 }
-maponly = False
+normFRbounds = {
+    'myelinated': (0, 1),
+    'unmyelinated': (0, 3.1)
+}
 
-# Define acoustic sources
-sources = {}
-for k, fiber in fibers.items():
-    w = fiber.length / 5  # m
-    sigma = GaussianAcousticSource.from_FWHM(w)  # m
-    sources[k] = GaussianAcousticSource(0, sigma, Fdrive, Adrive)
+map_PRFs = {
+    'myelinated': [500, 2600],   # Hz
+    'unmyelinated': [50., 200.]  # Hz
+}
+
+subsets = {
+    'myelinated': [
+        (100e-6, 500),
+        (100e-6, 2600),
+        (20e-6, 5000),
+    ],
+    'unmyelinated': [
+        (10e-3, 15.),
+        (5e-3, 15.),
+        (1e-3, 400.)
+    ]
+}
+
 
 if __name__ == '__main__':
 
     args = getCommandLineArguments()
     figs = {}
 
+    # Create figure backbone
+    nfibers = len(fibers)
+    nQmaps = len(subsets['myelinated'])
+    nPRFs = len(map_PRFs['myelinated'])
+    y1 = 6
+    y2 = y1 + 2
+    y3 = nQmaps * y2
+    y4 = 2 * y3 // 3
+    ysep = 4
+    nrows = y3 + y4 + ysep
+    x1 = 6
+    x2 = ((1 + nfibers) * x1 + 2) // (nfibers * nPRFs)
+    ncols = (1 + nfibers) * x1 + 2 * nfibers
+    fig = plt.figure(figsize=(15, 9))
+    gs = fig.add_gridspec(nrows, ncols)
+    subplots = {'FRvsPRF': gs[:y3, :x1]}
+    for i, k in enumerate(fibers.keys()):
+        subplots[k] = {}
+        # Top section
+        x0 = x1 + i * (x1 + 2)
+        yslice = lambda j: slice(j * y2 + 2, j * y2 + 2 + y1)
+        subplots[k]['field'] = [gs[yslice(j), x0] for j in range(nQmaps)]
+        xslice = slice(x0 + 1, x0 + x1 + 1)
+        subplots[k]['stim'] = [gs[j * y2, xslice] for j in range(nQmaps)]
+        subplots[k]['spikes'] = [gs[j * y2 + 1, xslice] for j in range(nQmaps)]
+        subplots[k]['Qmmap'] = [gs[yslice(j), xslice] for j in range(nQmaps)]
+        subplots[k]['Qmcbar'] = gs[:y3, x0 + x1 + 1]
+        # Bottom section
+        x0 = i * (nPRFs * x2 + 1)
+        y0 = y3 + ysep
+        subplots[k]['normFRmap'] = [gs[y0:, x0 + j * x2:x0 + (j + 1) * x2] for j in range(nPRFs)]
+        subplots[k]['normFRcbar'] = gs[y0:, x0 + nPRFs * x2]
+    axes = getAxesFromGridSpec(fig, subplots)
+    figs['modulation'] = fig
+
     # FR vs PRF batches
     PRFs = {}
     FRs = {}
     for k, fiber in fibers.items():
-        # Define pulse duration range
-        # PDs = np.logspace(-1, 1, nPD) * chronaxies[k]  # s
-
         # For each pulse duration
         PRFs[k] = {}
         FRs[k] = {}
@@ -227,67 +278,55 @@ if __name__ == '__main__':
             frbatch = FRvsPRFBatch(fiber, sources[k], PD, npulses, nPRF=nPRF, root=modroot)
             PRFs[k][PD_key] = frbatch.inputs
             FRs[k][PD_key] = frbatch.run()
-
-    FRfig = plotFRvsPRF(PRFs, FRs, cmaps)
+    FRax = axes['FRvsPRF']
+    plotFRvsPRF(PRFs, FRs, cmaps, ax=FRax)
 
     # Spatiotemporal maps for fiber-specific subsets
-    subsets = {
-        'myelinated': [
-            (100e-6, 500),
-            (100e-6, 2600),
-            (20e-6, 5000),
-        ],
-        'unmyelinated': [
-            (10e-3, 15.),
-            (5e-3, 15.),
-            (1e-3, 400.)
-        ]
-    }
-    FRax = FRfig.axes[0]
     minFR = FRax.get_ylim()[0]
     subset_FRs = {}
     for k, fiber in fibers.items():
         subset_FRs[k] = []
-        for PD, PRF in subsets[k]:
+        for imap, (PD, PRF) in enumerate(subsets[k]):
             key = f'PD = {si_format(PD, 1)}s, PRF = {si_format(PRF, 1)}Hz'
             pp = getPulseTrainProtocol(PD, npulses, PRF)
             fpath = fiber.simAndSave(sources[k], pp, overwrite=False, outputdir=modroot)
             data, meta = loadData(fpath)
+            subaxes = {key: axes[k][key][imap] for key in ['field', 'stim', 'spikes', 'Qmmap']}
+            subaxes['Qmcbar'] = axes[k]['Qmcbar']
             fig = spatioTemporalMap(
                 fiber, sources[k], data, 'Qm', fontsize=fontsize,
-                cmap=cmaps[k], zbounds=Qbounds[k], maponly=maponly, rasterized=True)
-            fig.suptitle(key, fontsize=fontsize)
+                cmap=cmaps[k], zbounds=Qbounds[k], rasterized=True, axes=subaxes)
             fname = f'Qmap_{k}_{key}'.replace(' ', '').replace(',', '_').replace('=', '')
-            figs[fname] = fig
             subset_FRs[k].append(fiber.getEndFiringRate(data))
-
         subset_FRs[k] = np.array(subset_FRs[k])  # convert to array
         subset_FRs[k][np.isnan(subset_FRs[k])] = minFR  # convert nans to inferior ylim
         FRax.scatter([x[1] for x in subsets[k]], subset_FRs[k],
                      c=[subset_colors[k]], zorder=2.5)
 
-    figs['FRvsPRF'] = FRfig
-
-    map_PRFs = {
-        'myelinated': [500, 2600],
-        'unmyelinated': [50., 200.]
-    }
-    FRbounds = {
-        'myelinated': (0, 1),
-        'unmyelinated': (0, 3.1)
-    }
+    # Fiber-specific FR / PRF maps
     nperax = 40
     DCs = np.linspace(0.0, 1, nperax)
     amps = np.logspace(np.log10(10e3), np.log10(600e3), nperax)
     for k, fiber in fibers.items():
-        for PRF in map_PRFs[k]:
+        for imap, PRF in enumerate(map_PRFs[k]):
             frmap = NormalizedFiringRateMap(
                 fiber, sources[k], DCs, amps, npulses, PRF, root=modroot)
             frmap.run()
-            fig = frmap.render(
-                yscale='log', cmap=cmaps[k], zbounds=FRbounds[k], interactive=True)
-            code = f'normFRmap_{k}_PRF_{si_format(PRF, 1)}Hz'
-            figs[code] = fig
+            frmap.render(
+                yscale='log', cmap=cmaps[k], zbounds=normFRbounds[k], interactive=True,
+                ax=axes[k]['normFRmap'][imap], cbarax=axes[k]['normFRcbar'],
+                title=f'{si_format(PRF)}Hz', fs=fontsize)
+
+    # Post-processing
+    for k in fibers.keys():
+        for ax in axes[k]['Qmmap'][:-1]:
+            ax.set_xlabel(None)
+        for ax in axes[k]['normFRmap']:
+            ax.set_xticks([0, 1])
+            ax.set_xticklabels(['0', '100'])
+            ax.set_xlabel('Duty cycle (%)')
+        ax.set_yticklabels([])
+        ax.set_ylabel(None)
 
     if args.save:
         saveFigs(figs)
