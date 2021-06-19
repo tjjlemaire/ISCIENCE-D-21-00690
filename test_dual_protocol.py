@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2021-06-09 13:30:58
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-19 19:39:41
+# @Last Modified time: 2021-06-19 19:41:07
 
 import numpy as np
 import logging
@@ -125,7 +125,7 @@ PDs = {'UN': 10e-3, 'MY': 0.1e-3}  # s
 PDlist = list(PDs.values())
 min_npulses = 10
 PRF_bounds = [1e1, 1e2]
-nperax = 40
+nperax = 10
 PRF_ranges = {k: np.logspace(*np.log10([10., min(1 / PD, 1000.)]), nperax) for k, PD in PDs.items()}
 PRFqueue = Batch.createQueue(*PRF_ranges.values())
 
