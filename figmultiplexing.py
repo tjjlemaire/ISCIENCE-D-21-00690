@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2021-06-09 13:30:58
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-20 17:05:00
+# @Last Modified time: 2021-06-20 17:07:44
 
 import numpy as np
 import logging
@@ -193,7 +193,7 @@ if __name__ == '__main__':
         frmap.run()
         fig = frmap.render(
             cmap=cmaps[k], interactive=True, title=k, xscale='log', yscale='log', zscale='log')
-        figs[frmap.corecode] = fig
+        figs[frmap.corecode()] = fig
 
     if args.save:
         saveFigs(figs)
