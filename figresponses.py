@@ -3,13 +3,13 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2020-09-14 11:50:12
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-14 17:17:23
+# @Last Modified time: 2021-06-22 15:33:40
 
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
 
-from PySONIC.utils import logger, si_format, bounds, padleft
+from PySONIC.utils import logger, si_format, bounds, padleft, loadData
 from PySONIC.plt import *
 from ExSONIC.models import SennFiber, UnmyelinatedFiber
 from ExSONIC.sources import GaussianAcousticSource
@@ -17,7 +17,7 @@ from ExSONIC.constants import *
 from ExSONIC.plt import setAxis
 from PySONIC.core import PulsedProtocol
 
-from utils import getSubRoot, getCommandLineArguments, saveFigs, loadData
+from utils import getSubRoot, getCommandLineArguments, saveFigs
 
 logger.setLevel(logging.INFO)
 

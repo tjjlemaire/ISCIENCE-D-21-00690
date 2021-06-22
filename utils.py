@@ -3,13 +3,13 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2021-06-08 14:56:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-19 17:36:23
+# @Last Modified time: 2021-06-22 16:22:32
 
 import os
-import pickle
+import numpy as np
 from argparse import ArgumentParser
-from PySONIC.utils import logger
 from config import dataroot
+from ExSONIC.models import SennFiber, UnmyelinatedFiber
 
 
 def getSubRoot(subdir):
@@ -38,13 +38,6 @@ def saveFigs(figs):
         fig.savefig(os.path.join(figroot, f'{k}.pdf'), transparent=True)
 
 
-def loadData(fpath):
-    logger.info('Loading data from "%s"', os.path.basename(fpath))
-    with open(fpath, 'rb') as fh:
-        frame = pickle.load(fh)
-    return frame['data'], frame['meta']
-
-
 def getAxesFromGridSpec(fig, gs):
     axes = {}
     for k, v in gs.items():
@@ -55,3 +48,19 @@ def getAxesFromGridSpec(fig, gs):
         else:
             axes[k] = fig.add_subplot(v)
     return axes
+
+
+def getNPulses(min_npulses, PRFs):
+    # Compute tstim to ensure a minimum number of pulses with the lowest PRF
+    tstim = min_npulses / min(PRFs)
+    # Compute the corresponding number of pulses with each PRF
+    return [int(np.ceil(tstim * PRF)) - 1 for PRF in PRFs]
+
+
+def getFiber(k, a=32e-9, fs=0.8, fiberL=10e-3):
+    ''' Generate fiber model '''
+    if k == 'UN':
+        return UnmyelinatedFiber(0.8e-6, fiberL=fiberL, a=a, fs=fs)
+    elif k == 'MY':
+        return SennFiber(10e-6, fiberL=fiberL, a=a, fs=fs)
+    raise ValueError(f'invalid fiber key: {k}')

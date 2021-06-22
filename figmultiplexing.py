@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2021-06-09 13:30:58
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-20 17:07:44
+# @Last Modified time: 2021-06-22 16:19:09
 
 import numpy as np
 import logging
@@ -11,24 +11,16 @@ import matplotlib.pyplot as plt
 
 from PySONIC.core import NeuronalBilayerSonophore, AcousticDrive, Batch
 from PySONIC.core import getPulseTrainProtocol, PulsedProtocol, ProtocolArray
-from PySONIC.utils import logger, si_format
+from PySONIC.utils import logger, si_format, loadData
 from PySONIC.plt import XYMap
-from ExSONIC.models import SennFiber, UnmyelinatedFiber
 from ExSONIC.sources import GaussianAcousticSource
 from ExSONIC.plt import spatioTemporalMap
 
-from utils import getSubRoot, getCommandLineArguments, loadData, saveFigs
+from utils import getSubRoot, getCommandLineArguments, saveFigs, getNPulses, getFiber
 
 logger.setLevel(logging.INFO)
 
 mproot = getSubRoot('multiplexing')
-
-
-def getNPulses(min_npulses, PRFs):
-    # Compute tstim to ensure a minimum number of pulses with the lowest PRF
-    tstim = min_npulses / min(PRFs)
-    # Compute the corresponding number of pulses with each PRF
-    return [int(np.ceil(tstim * PRF)) - 1 for PRF in PRFs]
 
 
 def runSimAndSave(fiber, source, PRFs, PDs, factors, min_npulses, root):
@@ -104,15 +96,6 @@ a = 32e-9       # m
 fs = 0.8        # (-)
 
 
-def getFiber(k):
-    ''' Generate fiber model '''
-    if k == 'UN':
-        return UnmyelinatedFiber(0.8e-6, fiberL=10e-3, a=a, fs=fs)
-    elif k == 'MY':
-        return SennFiber(10e-6, fiberL=10e-3, a=a, fs=fs)
-    raise ValueError(f'invalid fiber key: {k}')
-
-
 fibers = {'UN': getFiber('UN'), 'MY': getFiber('MY')}
 
 # US parameters
@@ -140,7 +123,7 @@ fontsize = 10
 drive = AcousticDrive(Fdrive)
 Athrs = {k: NeuronalBilayerSonophore(a, fiber.pneuron).titrate(
     drive, PulsedProtocol(PDs[k], 10e-3), fs=fs) for k, fiber in fibers.items()}
-s = 'fiber-specific thresholds:'
+s = 'fiber-specific thresholds: '
 s += ', '.join([f'A_{k} = {v * 1e-3:.1f} kPa'for k, v in Athrs.items()])
 s += f' (ratio = {max(Athrs.values()) / min(Athrs.values()):.2f})'
 logger.info(s)
@@ -158,42 +141,45 @@ if __name__ == '__main__':
     args = getCommandLineArguments()
     figs = {}
 
-    # Construct, combine, and optimize pulsed protocols for particular example
-    PRFs = {'UN': 50., 'MY': 60.}  # Hz
+    # Particular example:
+    # Construct multiplexed protocol
+    PRFs = {'UN': 50., 'MY': 200.}  # Hz
     npulses = dict(zip(PRFs.keys(), getNPulses(min_npulses, PRFs.values())))
     dual_pp = ProtocolArray(
         [f * getPulseTrainProtocol(PDs[k], npulses[k], PRFs[k]) for k, f in factors.items()],
         minimize_overlap=True)
-
-    # # Run simulations and plot spatio-temporal maps for each fiber
-    # FRs = {}
-    # for k, fiber in fibers.items():
-    #     fpath = fiber.simAndSave(source, dual_pp, outputdir=mproot, overwrite=False)
-    #     data, _ = loadData(fpath)
-    #     fig = spatioTemporalMap(
-    #         fiber, source, data, 'Qm', fontsize=fontsize, rasterized=True,
-    #         zbounds=Qbounds[k], cmap=cmaps[k])
-    #     FRs[k] = fiber.getEndFiringRate(data)
-    # print(FRs)
-
-    # # For each fiber
+    # Run simulations and plot spatio-temporal maps for each fiber
+    FRs = {}
     for k, fiber in fibers.items():
-        # Initialize dual protocol firing rate map
-        frmap = DualProtocolFiringRateMap(
-            fiber, source, PDlist, flist, *PRF_ranges.values(), min_npulses,
-            root=mproot)
-        # If map is not complete, run simulations over PRF 2D space and save files, then run map
-        if not frmap.isFinished():
-            queue = [[k, *x] for x in PRFqueue]
-            def simfunc(k, *PRFs):
-                return runSimAndSave(getFiber(k), source, PRFs, PDlist, flist, min_npulses, mproot)
-            batch = Batch(simfunc, queue)
-            batch.run(loglevel=logger.getEffectiveLevel(), mpi=args.mpi)
-        # Render map
-        frmap.run()
-        fig = frmap.render(
-            cmap=cmaps[k], interactive=True, title=k, xscale='log', yscale='log', zscale='log')
-        figs[frmap.corecode()] = fig
+        fpath = fiber.simAndSave(
+            source, dual_pp, outputdir=mproot, overwrite=False, full_output=False)
+        data, _ = loadData(fpath)
+        fig = spatioTemporalMap(
+            fiber, source, data, 'Qm', fontsize=fontsize, rasterized=True,
+            zbounds=Qbounds[k], cmap=cmaps[k])
+        FRs[k] = fiber.getEndFiringRate(data)
+    s = 'induced firing rates: '
+    s += ', '.join([f'FR_{k} = {v:.1f} Hz'for k, v in FRs.items()])
+    logger.info(s)
+
+    # # # For each fiber
+    # for k, fiber in fibers.items():
+    #     # Initialize dual protocol firing rate map
+    #     frmap = DualProtocolFiringRateMap(
+    #         fiber, source, PDlist, flist, *PRF_ranges.values(), min_npulses,
+    #         root=mproot)
+    #     # If map is not complete, run simulations over PRF 2D space and save files, then run map
+    #     if not frmap.isFinished():
+    #         queue = [[k, *x] for x in PRFqueue]
+    #         def simfunc(k, *PRFs):
+    #             return runSimAndSave(getFiber(k), source, PRFs, PDlist, flist, min_npulses, mproot)
+    #         batch = Batch(simfunc, queue)
+    #         batch.run(loglevel=logger.getEffectiveLevel(), mpi=args.mpi)
+    #     # Render map
+    #     frmap.run()
+    #     fig = frmap.render(
+    #         cmap=cmaps[k], interactive=True, title=k, xscale='log', yscale='log', zscale='log')
+    #     figs[frmap.corecode()] = fig
 
     if args.save:
         saveFigs(figs)
