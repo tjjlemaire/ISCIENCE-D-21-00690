@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2021-06-21 13:50:43
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-22 16:26:49
+# @Last Modified time: 2021-06-22 19:06:11
 
 import os
 import logging
@@ -32,10 +32,10 @@ fiberD_dist_params = {
         'max': 13.7e-6    # um
     },
     'UN': {
-        'mean': 2e-6,   # um
+        'mean': 0.8e-6,   # um
         'std': 0.6e-6,  # um
-        'max': 4e-6,    # um
-        'min': 0.1e-6   # um
+        'max': 1.5e-6,    # um
+        'min': 0.2e-6   # um
     }
 }
 
