@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2021-06-21 13:50:43
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-22 19:06:11
+# @Last Modified time: 2021-06-23 18:49:54
 
 import os
 import logging
@@ -60,7 +60,8 @@ sigma = GaussianAcousticSource.from_FWHM(w)  # m
 n = 8
 bundle_contours = circleContour(100e-6, n=n)
 length = 10e-3  # m
-f_kwargs = dict(fiberD_hists=fiberD_ref_hist, pratio=0.3, a=a, fs=fs)
+# f_kwargs = dict(fiberD_hists=fiberD_ref_hist, pratio=0.3, a=a, fs=fs)
+f_kwargs = dict(fiberD_hists=fiberD_ref_hist, pratio=0.01, a=a, fs=fs)
 
 # Pulsing parameters
 min_npulses = 10
@@ -90,6 +91,9 @@ pp = ProtocolArray(
     [f * getPulseTrainProtocol(PDs[k], npulses[k], PRFs[k]) for k, f in factors.items()],
     minimize_overlap=True)
 
+# source = GaussianAcousticSource(0., sigma, Fdrive, 100e3)
+# pp = PulsedProtocol(1e-3, 10e-3)
+
 
 if __name__ == '__main__':
 
@@ -97,14 +101,19 @@ if __name__ == '__main__':
     figs = {}
 
     # Bundle model
-    fpath = os.path.join(bundle_root, 'bundle.pkl')
+    bundle = Bundle(bundle_contours, length, **f_kwargs)
+    fname = f'{bundle.filecode()}.pkl'
+    fpath = os.path.join(bundle_root, fname)
     if os.path.isfile(fpath):
+        logger.info(f'Loading bundle from "{fname}"')
         bundle = Bundle.fromPickle(fpath)
     else:
-        bundle = Bundle(bundle_contours, length, **f_kwargs)
+        bundle.populate()
+        logger.info(f'Saving bundle to "{fname}"')
         bundle.toPickle(fpath)
     figs['diams'] = bundle.plotDiameterDistribution()
     figs['cross-section'] = bundle.plotCrossSection()
+    figs['offsets'] = bundle.plotLongitudinalOffsets()
 
     def simfunc(fiber, pos):
         ''' Simulation function to apply to all bundle fibers. '''
@@ -113,10 +122,8 @@ if __name__ == '__main__':
             source, pp, outputdir=bundle_root, overwrite=False, full_output=False)
 
     # Apply simulation to all fibers
-    output = bundle.forall(simfunc, mpi=args.mpi)
-
-    # Plot results
-    figs['raster'] = bundle.rasterPlot(output)
+    fpaths = bundle.forall(simfunc, mpi=args.mpi)
+    figs['raster'] = bundle.rasterPlot(fpaths)
 
     # f_offsets = {
     #     'f1': [150e-6, 0.],
