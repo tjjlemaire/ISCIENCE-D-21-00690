@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2021-06-21 13:50:43
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-25 18:16:39
+# @Last Modified time: 2021-07-06 19:29:23
 
 import logging
 import numpy as np
@@ -22,30 +22,6 @@ logger.setLevel(logging.INFO)
 
 bundle_root = getSubRoot('bundle')
 
-# Distributions parameters per fiber type
-fiberD_dist_params = {
-    'MY': {
-        'mean': 6.74e-6,  # um
-        'std': 2e-6,      # um
-        'min': 3.7e-6,    # um
-        'max': 13.7e-6    # um
-    },
-    'UN': {
-        'mean': 0.8e-6,   # um
-        'std': 0.6e-6,  # um
-        'max': 1.5e-6,    # um
-        'min': 0.2e-6   # um
-    }
-}
-
-# Distribution histogram per fiber type
-fiberD_ref_hist = {}
-for k, d in fiberD_dist_params.items():
-    data = norm.rvs(size=1000, loc=d['mean'], scale=d['std'])
-    data = data[data > d['min']]
-    data = data[data < d['max']]
-    fiberD_ref_hist[k] = np.histogram(data, bins=100)
-
 # Generic sonophore parameters
 a = 32e-9  # m
 fs = 0.8  # (-)
@@ -55,10 +31,32 @@ Fdrive = 500e3  # Hz
 w = 2e-3  # FWHM (m)
 sigma = GaussianAcousticSource.from_FWHM(w)  # m
 
-# Bundle parameters
-bundle_contours = circleContour(100e-6, n=100)
+# Bundle parameters, extracted from morphological data of human sural nerves
+# Reference: Jacobs, J.M., and Love, S. (1985). QUALITATIVE AND QUANTITATIVE MORPHOLOGY OF
+# HUMAN SURAL NERVE AT DIFFERENT AGES. Brain 108, 897–924.
+diameter = 100e-6  # m
+bundle_contours = circleContour(diameter / 2, n=100)
 length = 10e-3  # m
-f_kwargs = dict(fiberD_hists=fiberD_ref_hist, pratio=0.05, a=a, fs=fs)
+# Histogram distributions of fiber diameters per fiber type
+fiberD_hists = {
+    'UN': (  # Jacobs 1985, fig. 11D
+        np.array([7, 11.5, 9.5, 16, 18.5, 24, 8.5, 3.5, 1, 0.5]),                 # weights
+        np.array([0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2]) * 1e-6  # edges
+    ),
+    'MY': (  # Jacobs 1985, fig. 9C
+        np.array([6, 22, 20, 9, 3, 5.5, 7, 8, 9, 7.5, 3]),         # weights
+        np.array([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]) * 1e-6  # edges
+    )
+}
+target_un_to_my_ratio = 4.0  # UN:MY fiber count ratio (Jacobs 1985, Table 1)
+target_pratio = 0.30  # Packing ratio (chosen to ensure representative populations of each type)
+f_kwargs = dict(
+    fiberD_hists=fiberD_hists,
+    target_pratio=target_pratio,
+    target_un_to_my_ratio=target_un_to_my_ratio,
+    a=a,
+    fs=fs
+)
 
 # Pulsing parameters
 min_npulses = 10
@@ -98,7 +96,7 @@ if __name__ == '__main__':
     bundle = Bundle.get(bundle_contours, length, root=bundle_root, **f_kwargs)
     figs['diams'] = bundle.plotDiameterDistribution()
     figs['cross-section'] = bundle.plotCrossSection()
-    figs['offsets'] = bundle.plotLongitudinalOffsets()
+    figs['xoffsets'] = bundle.plotLongitudinalOffsets()
 
     def simfunc(fiber, pos):
         ''' Simulation function to apply to all bundle fibers. '''
@@ -109,24 +107,6 @@ if __name__ == '__main__':
     # Apply simulation to all fibers
     fpaths = bundle.forall(simfunc, mpi=args.mpi)
     figs['raster'] = bundle.rasterPlot(fpaths)
-
-    # f_offsets = {
-    #     'f1': [150e-6, 0.],
-    #     'f2': [-150e-6, 0.]
-    # }
-    # f_contours = {k: bundle_contours + np.tile(v, (n, 1)) for k, v in f_offsets.items()}
-    # nerve_contours = circleContour(300e-6, n=n)
-
-    # # Nerve model
-    # fpath = 'nerve.pkl'
-    # if os.path.isfile(fpath):
-    #     nerve = Nerve.fromPickle(fpath)
-    # else:
-    #     nerve = Nerve(nerve_contours, length, f_contours=f_contours,
-    #                   f_kwargs={k: f_kwargs for k in f_contours.keys()})
-    #     nerve.toPickle(fpath)
-    # fig1 = nerve.plotDiameterDistribution()
-    # fig2 = nerve.plotCrossSection()
 
     if args.save:
         saveFigs(figs)
