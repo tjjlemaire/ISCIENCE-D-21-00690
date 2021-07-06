@@ -3,12 +3,11 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2021-06-21 13:50:43
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-07-06 19:29:23
+# @Last Modified time: 2021-07-06 19:31:14
 
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.stats import norm
 
 from PySONIC.utils import logger
 from PySONIC.core import NeuronalBilayerSonophore, AcousticDrive
