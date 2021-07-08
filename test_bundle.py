@@ -3,13 +3,15 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2021-06-21 13:50:43
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-07-06 19:31:14
+# @Last Modified time: 2021-07-08 11:17:54
 
+import os
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
+import pickle
 
-from PySONIC.utils import logger
+from PySONIC.utils import logger, loadData
 from PySONIC.core import NeuronalBilayerSonophore, AcousticDrive
 from PySONIC.core.protocols import getPulseTrainProtocol, PulsedProtocol, ProtocolArray
 from ExSONIC.containers import circleContour, Bundle
@@ -105,7 +107,23 @@ if __name__ == '__main__':
 
     # Apply simulation to all fibers
     fpaths = bundle.forall(simfunc, mpi=args.mpi)
-    figs['raster'] = bundle.rasterPlot(fpaths)
+    # figs['raster'] = bundle.rasterPlot(fpaths)
+
+    fname = f'{bundle.filecode()}_FRdata.pkl'
+    fpath = os.path.join(bundle_root, fname)
+    if os.path.exists(fpath):
+        with open(fpath, 'rb') as fh:
+            fr_data = pickle.load(fh)
+    else:
+        fr_data = {k: [] for k in ['MY', 'UN']}
+        for i, ((fk, _), fpath) in enumerate(zip(bundle.fibers[::-1], fpaths)):
+            k = {True: 'MY', False: 'UN'}[fk.is_myelinated]
+            data, _ = loadData(fpath)
+            fr_data[k].append(fk.getEndFiringRate(data))
+        fr_data = {k: np.array(v) for k, v in fr_data.items()}
+        with open(fpath, 'wb') as fh:
+            pickle.dump(fr_data, fh)
+    figs['bundle_frdist'] = bundle.plotFiringRateDistribution(fr_data)
 
     if args.save:
         saveFigs(figs)
