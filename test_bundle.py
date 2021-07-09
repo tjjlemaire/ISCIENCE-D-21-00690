@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2021-06-21 13:50:43
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-07-09 12:07:00
+# @Last Modified time: 2021-07-09 12:25:31
 
 import os
 import logging
@@ -109,11 +109,14 @@ if __name__ == '__main__':
     fpaths = bundle.forall(simfunc, mpi=args.mpi)
     # figs['raster'] = bundle.rasterPlot(fpaths)
 
+    print(fpaths[::-1])
+    quit()
+
     fname = f'{bundle.filecode()}_FRdata.pkl'
-    fpath = os.path.join(bundle_root, fname)
-    print(fpath)
-    if os.path.exists(fpath):
-        with open(fpath, 'rb') as fh:
+    fr_fpath = os.path.join(bundle_root, fname)
+    print(fr_fpath)
+    if os.path.exists(fr_fpath):
+        with open(fr_fpath, 'rb') as fh:
             fr_data = pickle.load(fh)
     else:
         fr_data = {k: [] for k in ['MY', 'UN']}
@@ -122,7 +125,7 @@ if __name__ == '__main__':
             data, _ = loadData(fpath)
             fr_data[k].append(fk.getEndFiringRate(data))
         fr_data = {k: np.array(v) for k, v in fr_data.items()}
-        with open(fpath, 'wb') as fh:
+        with open(fr_fpath, 'wb') as fh:
             pickle.dump(fr_data, fh)
     print(fr_data)
     figs['bundle_frdist'] = bundle.plotFiringRateDistribution(fr_data)
