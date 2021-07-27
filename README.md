@@ -42,11 +42,13 @@ Be aware that the raw simulations as well as intermediate computation results ar
 The generated dataset should be split between 5 sub-folders in the indicated output directory:
 
 - `benchmarks`: contains primary results and divergence maps files of two-compartment benchmark simulations 
+- `bundle`: contains results files of the nerve bundle simluation
 - `fields`: contains results from acoustic fields computations
+- `figs`: output folder containing PDFs of the generated figures
 - `modulation`: contains primary results and intermediate firing rate maps from fiber neuromodulation simulations
+- `multiplexing`: contains primary results and firing rate maps files of MUX-LIFUS analysis
 - `responses`: contains simulation results from fiber "typical" simulations
 - `SDcurves`: contains intermediate SD curves data from fiber threshold simulations.
-- `figs`: output folder containing PDFs of the generated figures
 
 # Authors
 
