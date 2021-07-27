@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2020-03-31 13:56:36
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-22 15:25:25
+# @Last Modified time: 2021-07-27 18:29:12
 
 import logging
 import numpy as np
@@ -13,9 +13,9 @@ from PySONIC.core import getPulseTrainProtocol, LogBatch
 from PySONIC.utils import logger, si_format, loadData
 from PySONIC.plt import setNormalizer, XYMap
 
-from ExSONIC.models import SennFiber, UnmyelinatedFiber
-from ExSONIC.sources import GaussianAcousticSource
-from ExSONIC.plt import spatioTemporalMap
+from MorphoSONIC.models import SennFiber, UnmyelinatedFiber
+from MorphoSONIC.sources import GaussianAcousticSource
+from MorphoSONIC.plt import spatioTemporalMap
 
 from utils import getSubRoot, getCommandLineArguments, saveFigs, getAxesFromGridSpec
 

@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2021-05-14 19:42:00
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-19 14:13:57
+# @Last Modified time: 2021-07-27 18:29:08
 
 import os
 import logging
@@ -15,7 +15,7 @@ from PySONIC.multicomp import FiberBenchmark
 from PySONIC.utils import logger, si_format
 from PySONIC.plt import FiberDivergenceMap
 from PySONIC.postpro import detectSpikes
-from ExSONIC.models import SennFiber, UnmyelinatedFiber
+from MorphoSONIC.models import SennFiber, UnmyelinatedFiber
 
 from utils import getSubRoot, getCommandLineArguments, saveFigs
 

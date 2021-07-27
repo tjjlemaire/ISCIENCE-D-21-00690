@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2021-05-14 19:42:00
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-23 11:50:20
+# @Last Modified time: 2021-07-27 18:29:06
 
 import os
 import logging
@@ -15,7 +15,7 @@ from PySONIC.core import AcousticDrive, AcousticDriveArray
 from PySONIC.multicomp import PassiveBenchmark
 from PySONIC.utils import logger, frac_format
 from PySONIC.plt import PassiveDivergenceMap
-from ExSONIC.models import SennFiber, UnmyelinatedFiber
+from MorphoSONIC.models import SennFiber, UnmyelinatedFiber
 
 from utils import getSubRoot, getCommandLineArguments, saveFigs, getAxesFromGridSpec
 

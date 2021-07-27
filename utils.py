@@ -3,13 +3,13 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2021-06-08 14:56:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-22 16:22:32
+# @Last Modified time: 2021-07-27 18:29:01
 
 import os
 import numpy as np
 from argparse import ArgumentParser
 from config import dataroot
-from ExSONIC.models import SennFiber, UnmyelinatedFiber
+from MorphoSONIC.models import SennFiber, UnmyelinatedFiber
 
 
 def getSubRoot(subdir):

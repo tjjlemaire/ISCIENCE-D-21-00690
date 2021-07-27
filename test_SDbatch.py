@@ -3,15 +3,15 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2021-06-05 14:05:45
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-05 18:11:07
+# @Last Modified time: 2021-07-27 18:28:56
 
 import numpy as np
 import logging
 import matplotlib.pyplot as plt
 
 from PySONIC import PulsedProtocol, logger, AcousticDrive, CompTimeSeries
-from ExSONIC.core import UnmyelinatedFiber, Node
-from ExSONIC.batches import StrengthDurationBatch
+from MorphoSONIC.core import UnmyelinatedFiber, Node
+from MorphoSONIC.batches import StrengthDurationBatch
 
 logger.setLevel(logging.INFO)
 

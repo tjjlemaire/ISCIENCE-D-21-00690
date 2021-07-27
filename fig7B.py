@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2021-06-09 13:30:58
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-06-22 16:19:09
+# @Last Modified time: 2021-07-27 18:28:43
 
 import numpy as np
 import logging
@@ -13,8 +13,8 @@ from PySONIC.core import NeuronalBilayerSonophore, AcousticDrive, Batch
 from PySONIC.core import getPulseTrainProtocol, PulsedProtocol, ProtocolArray
 from PySONIC.utils import logger, si_format, loadData
 from PySONIC.plt import XYMap
-from ExSONIC.sources import GaussianAcousticSource
-from ExSONIC.plt import spatioTemporalMap
+from MorphoSONIC.sources import GaussianAcousticSource
+from MorphoSONIC.plt import spatioTemporalMap
 
 from utils import getSubRoot, getCommandLineArguments, saveFigs, getNPulses, getFiber
 

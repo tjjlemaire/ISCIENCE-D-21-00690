@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2021-06-21 13:50:43
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-07-09 12:25:31
+# @Last Modified time: 2021-07-27 18:28:48
 
 import os
 import logging
@@ -14,8 +14,8 @@ import pickle
 from PySONIC.utils import logger, loadData
 from PySONIC.core import NeuronalBilayerSonophore, AcousticDrive
 from PySONIC.core.protocols import getPulseTrainProtocol, PulsedProtocol, ProtocolArray
-from ExSONIC.containers import circleContour, Bundle
-from ExSONIC.sources import GaussianAcousticSource
+from MorphoSONIC.containers import circleContour, Bundle
+from MorphoSONIC.sources import GaussianAcousticSource
 
 from utils import getSubRoot, getCommandLineArguments, saveFigs, getNPulses, getFiber
 
