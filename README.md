@@ -39,7 +39,7 @@ Upon completion, the figure panels should appear as matplotlib figures. Addition
 
 Be aware that the raw simulations as well as intermediate computation results are stored upon script executation, in order to avoid re-running simulations twice. The **total size of entire dataset exceeds 50 GB**, so make sure to plan for enough disk space. Complementarily, **some scripts are optimized to distribute simulations among across CPUs** (using the `--mpi` option), so you might want to run them on a **high-performance, multi-core machine**.
 
-The generated dataset should be split between 5 sub-folders in the indicated output directory:
+The generated dataset should be split between 8 sub-folders in the indicated output directory:
 
 - `benchmarks`: contains primary results and divergence maps files of two-compartment benchmark simulations 
 - `bundle`: contains results files of the nerve bundle simluation
