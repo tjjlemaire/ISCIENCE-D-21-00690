@@ -3,13 +3,14 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2021-06-21 13:50:43
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-07-27 18:28:48
+# @Last Modified time: 2021-07-27 18:59:25
 
 import os
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
+from scipy.stats import kruskal
 
 from PySONIC.utils import logger, loadData
 from PySONIC.core import NeuronalBilayerSonophore, AcousticDrive
@@ -17,7 +18,7 @@ from PySONIC.core.protocols import getPulseTrainProtocol, PulsedProtocol, Protoc
 from MorphoSONIC.containers import circleContour, Bundle
 from MorphoSONIC.sources import GaussianAcousticSource
 
-from utils import getSubRoot, getCommandLineArguments, saveFigs, getNPulses, getFiber
+from utils import getSubRoot, getCommandLineArguments, saveFigs, getNPulses, getFiber, isGaussian
 
 logger.setLevel(logging.INFO)
 
@@ -107,14 +108,11 @@ if __name__ == '__main__':
 
     # Apply simulation to all fibers
     fpaths = bundle.forall(simfunc, mpi=args.mpi)
-    # figs['raster'] = bundle.rasterPlot(fpaths)
+    # figs['raster'] = bundle.plotSpikeRaster(fpaths)
 
-    print(fpaths[::-1])
-    quit()
-
+    # Plot FR distribution
     fname = f'{bundle.filecode()}_FRdata.pkl'
     fr_fpath = os.path.join(bundle_root, fname)
-    print(fr_fpath)
     if os.path.exists(fr_fpath):
         with open(fr_fpath, 'rb') as fh:
             fr_data = pickle.load(fh)
@@ -127,8 +125,13 @@ if __name__ == '__main__':
         fr_data = {k: np.array(v) for k, v in fr_data.items()}
         with open(fr_fpath, 'wb') as fh:
             pickle.dump(fr_data, fh)
-    print(fr_data)
+    for k, fr in fr_data.items():
+        print(k, np.mean(fr), np.std(fr))
+    print(kruskal(*fr_data.values()))
     figs['bundle_frdist'] = bundle.plotFiringRateDistribution(fr_data)
+    ax = figs['bundle_frdist'].axes[0]
+    for k, PRF in PRFs.items():
+        ax.axhline(PRF, ls='--', color='k')
 
     if args.save:
         saveFigs(figs)

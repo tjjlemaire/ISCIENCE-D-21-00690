@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2020-08-22 14:14:17
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-07-27 18:28:52
+# @Last Modified time: 2021-07-27 18:58:31
 
 import os
 import logging
@@ -11,7 +11,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 from matplotlib.ticker import StrMethodFormatter
-from scipy.stats import normaltest
 
 from PySONIC.utils import logger, si_format, rangecode, isIterable
 from PySONIC.plt import setNormalizer, XYMap
@@ -51,14 +50,6 @@ def getPacField(source, x, y, z):
         logger.info(f'Saving Pac field in file {fname}')
         np.savetxt(fpath, Pac_field)
     return Pac_field
-
-
-def isGaussian(x, alpha):
-    _, p = normaltest(x)
-    is_normal = p < alpha
-    s = 'looks' if is_normal else 'does not look'
-    logger.info(f'Distribution {s} gaussian (p = {p:.2e})')
-    return is_normal
 
 
 def getFWHM(x, y):

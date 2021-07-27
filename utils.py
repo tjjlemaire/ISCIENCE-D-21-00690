@@ -3,13 +3,15 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2021-06-08 14:56:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-07-27 18:29:01
+# @Last Modified time: 2021-07-27 18:57:59
 
 import os
 import numpy as np
+from scipy.stats import normaltest
 from argparse import ArgumentParser
 from config import dataroot
 from MorphoSONIC.models import SennFiber, UnmyelinatedFiber
+from PySONIC.utils import logger
 
 
 def getSubRoot(subdir):
@@ -64,3 +66,11 @@ def getFiber(k, a=32e-9, fs=0.8, fiberL=10e-3):
     elif k == 'MY':
         return SennFiber(10e-6, fiberL=fiberL, a=a, fs=fs)
     raise ValueError(f'invalid fiber key: {k}')
+
+
+def isGaussian(x, alpha):
+    _, p = normaltest(x)
+    is_normal = p < alpha
+    s = 'looks' if is_normal else 'does not look'
+    logger.info(f'Distribution {s} gaussian (p = {p:.2e})')
+    return is_normal
