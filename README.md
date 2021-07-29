@@ -13,7 +13,7 @@ This repository contains the Python scripts allowing to generate the figures of 
 - Python 3.6+
 - NEURON 7.x (https://neuron.yale.edu/neuron/download/)
 - PySONIC package (https://github.com/tjjlemaire/PySONIC)
-- MorphoSONIC package (https://github.com/tjjlemaire/MorphoSONIC)
+- MorphoSONIC package (https://c4science.ch/diffusion/7145/)
 
 # Installation
 
